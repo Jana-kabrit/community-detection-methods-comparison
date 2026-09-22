@@ -1,0 +1,17 @@
+.venv/
+outputs/
+backup_answers/
+backup_h3/
+*.pt
+*.zip
+*_communities.json
+*_run_config.json
+*_summaries.json
+*_answers.json
+*_ledger.csv
+diff_h3.txt
+paired_h3.txt
+scores_h3.csv
+degree_distribution.png
+recursion_tree*.jsonl
+leaf_stats*.json
