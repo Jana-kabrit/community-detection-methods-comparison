@@ -1,0 +1,12 @@
+{
+  "leaf_count": 7043,
+  "total_nodes_covered": 103056,
+  "unassigned_nodes": 0,
+  "size_min": 1,
+  "size_max": 251,
+  "size_mean": 14.63,
+  "size_median": 6,
+  "size_stdev": 25.73,
+  "elapsed_sec": 26.24,
+  "max_depth_reached": 3
+}
