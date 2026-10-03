@@ -1,0 +1,75 @@
+{
+  "method": "leiden",
+  "runs": [
+    {
+      "seed": 1,
+      "elapsed_sec": 1.2583,
+      "modularity": 0.8366502910338734,
+      "num_final_communities": 7212,
+      "rss_mb": 1197.9
+    },
+    {
+      "seed": 2,
+      "elapsed_sec": 0.9134,
+      "modularity": 0.8349516503419399,
+      "num_final_communities": 7320,
+      "rss_mb": 1199.0
+    },
+    {
+      "seed": 3,
+      "elapsed_sec": 1.2968,
+      "modularity": 0.8354951620839535,
+      "num_final_communities": 7264,
+      "rss_mb": 1216.0
+    },
+    {
+      "seed": 4,
+      "elapsed_sec": 1.2817,
+      "modularity": 0.8381004892249238,
+      "num_final_communities": 7135,
+      "rss_mb": 1213.5
+    },
+    {
+      "seed": 5,
+      "elapsed_sec": 1.0149,
+      "modularity": 0.8350658049376966,
+      "num_final_communities": 7301,
+      "rss_mb": 1217.3
+    },
+    {
+      "seed": 6,
+      "elapsed_sec": 1.2694,
+      "modularity": 0.836946495794394,
+      "num_final_communities": 7246,
+      "rss_mb": 1215.1
+    },
+    {
+      "seed": 7,
+      "elapsed_sec": 1.2109,
+      "modularity": 0.8363508815944286,
+      "num_final_communities": 7248,
+      "rss_mb": 1215.8
+    },
+    {
+      "seed": 8,
+      "elapsed_sec": 0.8856,
+      "modularity": 0.8368310734572548,
+      "num_final_communities": 7170,
+      "rss_mb": 1214.3
+    },
+    {
+      "seed": 9,
+      "elapsed_sec": 0.9586,
+      "modularity": 0.8372902924917969,
+      "num_final_communities": 7230,
+      "rss_mb": 1215.5
+    },
+    {
+      "seed": 10,
+      "elapsed_sec": 0.8366,
+      "modularity": 0.8384634946028069,
+      "num_final_communities": 7136,
+      "rss_mb": 1215.0
+    }
+  ]
+}

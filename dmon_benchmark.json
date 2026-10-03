@@ -1,0 +1,105 @@
+{
+  "method": "dmon",
+  "runs": [
+    {
+      "seed": 1,
+      "elapsed_sec": 29.66,
+      "wall_elapsed_sec": 39.65,
+      "modularity": 0.099724293788574,
+      "num_final_communities": 7641,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 13.49,
+      "size_stdev": 26.47
+    },
+    {
+      "seed": 2,
+      "elapsed_sec": 29.46,
+      "wall_elapsed_sec": 40.31,
+      "modularity": 0.10262783475179928,
+      "num_final_communities": 8207,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 12.56,
+      "size_stdev": 24.88
+    },
+    {
+      "seed": 3,
+      "elapsed_sec": 27.15,
+      "wall_elapsed_sec": 36.86,
+      "modularity": 0.10817240533163976,
+      "num_final_communities": 7415,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 13.9,
+      "size_stdev": 26.43
+    },
+    {
+      "seed": 4,
+      "elapsed_sec": 23.92,
+      "wall_elapsed_sec": 33.14,
+      "modularity": 0.1061511696150436,
+      "num_final_communities": 6825,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 15.1,
+      "size_stdev": 27.73
+    },
+    {
+      "seed": 5,
+      "elapsed_sec": 28.49,
+      "wall_elapsed_sec": 38.46,
+      "modularity": 0.10584353294514201,
+      "num_final_communities": 7523,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 13.7,
+      "size_stdev": 26.99
+    },
+    {
+      "seed": 6,
+      "elapsed_sec": 26.13,
+      "wall_elapsed_sec": 36.06,
+      "modularity": 0.10516671223419187,
+      "num_final_communities": 6921,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 14.89,
+      "size_stdev": 30.07
+    },
+    {
+      "seed": 7,
+      "elapsed_sec": 30.22,
+      "wall_elapsed_sec": 40.79,
+      "modularity": 0.1077218204040166,
+      "num_final_communities": 8569,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 12.03,
+      "size_stdev": 24.84
+    },
+    {
+      "seed": 8,
+      "elapsed_sec": 27.14,
+      "wall_elapsed_sec": 36.89,
+      "modularity": 0.10737656481038149,
+      "num_final_communities": 7945,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 12.97,
+      "size_stdev": 23.07
+    },
+    {
+      "seed": 9,
+      "elapsed_sec": 29.2,
+      "wall_elapsed_sec": 39.37,
+      "modularity": 0.1022593830541146,
+      "num_final_communities": 7929,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 13.0,
+      "size_stdev": 24.95
+    },
+    {
+      "seed": 10,
+      "elapsed_sec": 27.85,
+      "wall_elapsed_sec": 37.58,
+      "modularity": 0.09910661838720691,
+      "num_final_communities": 7607,
+      "gpu_peak_mb": 1011.8,
+      "size_mean": 13.55,
+      "size_stdev": 24.53
+    }
+  ]
+}

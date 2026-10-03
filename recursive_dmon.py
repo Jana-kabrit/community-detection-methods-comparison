@@ -81,13 +81,14 @@ from pathlib import Path
 
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
+import networkx as nx
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.checkpoint import checkpoint
 from torch_geometric.data import Data
 from torch_geometric.nn import GCNConv
-from torch_geometric.utils import to_undirected, remove_self_loops, degree, subgraph
+from torch_geometric.utils import to_undirected, remove_self_loops, degree, subgraph, to_networkx
 
 # ---------------------------------------------------------------------------
 # Config
@@ -219,7 +220,14 @@ def train_one_subgraph(
     LOCAL indices (0..n_clusters-1) — caller maps these back to global node
     ids and decides whether to recurse into each resulting group.
     """
-    set_seed()
+    # Deliberately does NOT reset the RNG here. Earlier versions called
+    # set_seed() with no argument at the top of this function, which reset
+    # every subgraph's init to the same fixed constant regardless of the
+    # overall run's --seed -- silently defeating seed-controlled variation
+    # across runs (H4 needs real seed-to-seed variation). Seeding happens
+    # once, in main(), and the RNG state is left to advance naturally across
+    # the whole recursion so --seed actually changes every subgraph's
+    # initialization, not just the first one.
     num_nodes = x.size(0)
     model = DMoNEncoder(x.size(1), hp.hidden_dim, n_clusters, hp.dropout).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=hp.lr)
@@ -345,6 +353,30 @@ def recursive_split(
     return leaves
 
 
+def modularity_of_leaves(graph: Data, assignment: torch.Tensor) -> tuple[float, int]:
+    """Modularity of the leaf partition, for the same cross-method quality
+    score used by benchmark_leiden.py / benchmark_kcore.py (kept as a local
+    copy rather than importing bench_common, so this script stays a single
+    file you can drop into Colab on its own like before)."""
+    G_nx = to_networkx(graph, to_undirected=True)
+    G_nx.remove_edges_from(nx.selfloop_edges(G_nx))
+
+    communities: dict[int, set] = {}
+    for node_idx in G_nx.nodes():
+        leaf_id = int(assignment[node_idx])
+        if leaf_id < 0:
+            continue
+        communities.setdefault(leaf_id, set()).add(node_idx)
+
+    comm_sets = list(communities.values())
+    if len(comm_sets) < 2:
+        return float("nan"), len(comm_sets)
+    covered = set().union(*comm_sets)
+    G_scored = G_nx.subgraph(covered) if len(covered) != G_nx.number_of_nodes() else G_nx
+    q = nx.algorithms.community.modularity(G_scored, comm_sets)
+    return q, len(comm_sets)
+
+
 def summarize_leaves(leaves: list[tuple[int, torch.Tensor]], num_nodes: int):
     sizes = [ids.numel() for _, ids in leaves]
     assignment = torch.full((num_nodes,), -1, dtype=torch.long)
@@ -398,9 +430,15 @@ def main():
     parser.add_argument("--assignment-path", default="leaf_assignment.pt")
     parser.add_argument("--tree-path", default="recursion_tree.jsonl")
     parser.add_argument("--stats-path", default="leaf_stats.json")
+    parser.add_argument("--seed", type=int, default=SEED,
+                         help="Controls DMoN's init + training randomness for this run "
+                              "(for H4: pass 10 different values across 10 runs). "
+                              "GPU floating-point ops are still non-deterministic, so even "
+                              "the same --seed won't reproduce bit-for-bit -- but different "
+                              "seeds now genuinely diverge from the first subgraph onward.")
     args = parser.parse_args()
 
-    set_seed()
+    set_seed(args.seed)
 
     if args.mode == "smoke":
         graph = make_smoke_graph()
@@ -425,7 +463,7 @@ def main():
                            max_depth=args.max_depth, epochs=args.epochs, patience=args.patience)
     autocast_dtype, use_scaler = pick_precision(args.precision)
     print(f"Device: {DEVICE} | precision: {autocast_dtype if autocast_dtype else 'fp32'} | "
-          f"target_c={args.target_c} | min_size_to_split={min_size_to_split} | "
+          f"seed={args.seed} | target_c={args.target_c} | min_size_to_split={min_size_to_split} | "
           f"max_depth={args.max_depth}")
     print(f"hparams: lr={hp.lr} hidden_dim={hp.hidden_dim} dropout={hp.dropout} "
           f"reg_weight={hp.reg_weight}")
@@ -433,6 +471,9 @@ def main():
     x_full = graph.x.to(DEVICE) if DEVICE.type == "cuda" else graph.x
     edge_index_full = graph.edge_index.to(DEVICE) if DEVICE.type == "cuda" else graph.edge_index
     all_node_ids = torch.arange(graph.num_nodes)
+
+    if DEVICE.type == "cuda":
+        torch.cuda.reset_peak_memory_stats()
 
     tree_log: list = []
     leaf_id_counter = [0]
@@ -446,6 +487,20 @@ def main():
     assignment, stats = summarize_leaves(leaves, graph.num_nodes)
     stats["elapsed_sec"] = round(elapsed, 2)
     stats["max_depth_reached"] = max((entry["depth"] for entry in tree_log), default=0)
+    stats["seed"] = args.seed
+
+    if DEVICE.type == "cuda":
+        stats["gpu_peak_mb"] = round(torch.cuda.max_memory_allocated() / 1e6, 1)
+    else:
+        stats["gpu_peak_mb"] = None
+
+    print("\nComputing modularity of the final leaf partition...")
+    modularity, n_comms_check = modularity_of_leaves(graph, assignment)
+    stats["modularity"] = modularity
+    assert n_comms_check == stats["leaf_count"], (
+        f"leaf_count ({stats['leaf_count']}) != communities seen by modularity "
+        f"({n_comms_check}) -- investigate before trusting this run's score."
+    )
 
     torch.save(assignment, args.assignment_path)
     with open(args.tree_path, "w") as f:
@@ -460,6 +515,9 @@ def main():
           f"mean={stats['size_mean']} median={stats['size_median']} stdev={stats['size_stdev']}")
     print(f"Every node assigned exactly once: {stats['unassigned_nodes'] == 0} "
           f"({stats['unassigned_nodes']} unassigned)")
+    print(f"Modularity: {stats['modularity']:.4f}")
+    if stats["gpu_peak_mb"] is not None:
+        print(f"GPU peak memory: {stats['gpu_peak_mb']:.1f} MB")
     print(f"\nSaved: {args.assignment_path} (per-node leaf id), "
           f"{args.tree_path} (full recursion tree), {args.stats_path} (summary stats).")
     print("Compare leaf_count and the size distribution directly against Leiden's "
